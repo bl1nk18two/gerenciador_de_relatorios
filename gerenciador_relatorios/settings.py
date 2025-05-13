@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     #API
     'django_filters',
     'rest_framework',
+    'drf_yasg',
+    
     'webapp',
     'api'
 ]

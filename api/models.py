@@ -3,15 +3,6 @@ from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from django.db import models
 
-# Create your models here.
-# class Relatorio(models.Model):
-#     titulo = models.CharField(max_length=100)
-#     conteudo = models.TextField()
-#     criado_em = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return self.titulo
-
 
 class Cliente(models.Model):
     nome = models.CharField(max_length=255)
@@ -49,5 +40,3 @@ class Tarefa(models.Model):
 
     def __str__(self):
         return f"{self.usuario.username} | {self.data} | {self.projeto.nome} | {self.hora_inicio} - {self.hora_fim}"
-    
-    
