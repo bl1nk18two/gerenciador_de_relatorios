@@ -6,16 +6,24 @@ from rest_framework import serializers
 from .models import Cliente, Projeto, Tarefa
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'groups']
+class GroupSerializer(serializers.ModelSerializer):
+    permissions = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )    
 
-
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Group
-        fields = ['url', 'name']
+        fields = ['id', 'name', 'permissions']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    groups = GroupSerializer(many=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'groups'] 
 
 
 class ClienteSerializer(serializers.ModelSerializer):

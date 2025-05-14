@@ -1,15 +1,59 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth import authenticate, login, logout
 from django_filters import rest_framework as filters
 from django.contrib.auth.models import Group, User
 from drf_yasg.inspectors import SwaggerAutoSchema
 from rest_framework import permissions, viewsets
 from drf_yasg.utils import swagger_auto_schema
-from django.forms import DateField
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.urls import reverse
 from drf_yasg import openapi
 import django_filters
 
 from .serializers import GroupSerializer, UserSerializer, ClienteSerializer, ProjetoSerializer, TarefaSerializer
 from .models import Cliente, Projeto, Tarefa
+
+
+# Autenticação
+def redirect_if_not_authenticated(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            login_url = reverse('login')
+            return redirect(f"{login_url}?next={request.path}")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+def redirect_logout(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            login_url = reverse('logout')
+            return redirect(f"{login_url}?next={request.path}")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+def user_login(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            next_url = request.GET.get('next') or reverse('swagger-schema')
+            return redirect(next_url)
+        else:
+            messages.error(request, "Usuário ou senha incorretos. Verifique seus dados e tente novamente.")
+            return redirect('login')
+    else:
+        return render(request, "login.html",)
+
+
+def user_logout(request):
+    logout(request)
+    messages.success(request, "Você foi desconectado com sucesso.")
+    return redirect('login')
 
 
 # Organização do Swagger
@@ -120,7 +164,7 @@ class UserViewSet(viewsets.ModelViewSet):
     swagger_tag = "Usuários"
 
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
