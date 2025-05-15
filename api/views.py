@@ -6,7 +6,9 @@ from drf_yasg.inspectors import SwaggerAutoSchema
 from rest_framework import permissions, viewsets
 from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import render, redirect
+from rest_framework.response import Response
 from django.contrib import messages
+from rest_framework import status
 from django.urls import reverse
 from drf_yasg import openapi
 import django_filters
@@ -90,7 +92,7 @@ class TarefaFilter(filters.FilterSet):
 class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend]
     filterset_class = ClienteFilter
     swagger_schema = CustomSwaggerAutoSchema
@@ -111,7 +113,7 @@ class ClienteViewSet(viewsets.ModelViewSet):
 class ProjetoViewSet(viewsets.ModelViewSet):
     queryset = Projeto.objects.all()
     serializer_class = ProjetoSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['cliente', 'nome', 'ativo', 'finalizado']
     swagger_schema = CustomSwaggerAutoSchema
@@ -133,7 +135,7 @@ class ProjetoViewSet(viewsets.ModelViewSet):
 class TarefaViewSet(viewsets.ModelViewSet):
     queryset = Tarefa.objects.all()
     serializer_class = TarefaSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.DjangoModelPermissions]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TarefaFilter
     swagger_schema = CustomSwaggerAutoSchema
@@ -152,6 +154,16 @@ class TarefaViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+    def create(self, request, *args, **kwargs):
+        is_many = isinstance(request.data, list)  
+
+        serializer = self.get_serializer(data=request.data, many=is_many)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -159,7 +171,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.DjangoModelPermissions]
     swagger_schema = CustomSwaggerAutoSchema
     swagger_tag = "Usuários"
 
@@ -170,6 +182,6 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = Group.objects.all().order_by('name')
     serializer_class = GroupSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.DjangoModelPermissions]
     swagger_schema = CustomSwaggerAutoSchema
     swagger_tag = "Grupos"

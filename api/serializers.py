@@ -23,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'groups'] 
+        fields = ['id', 'username', 'email', 'groups']
 
 
 class ClienteSerializer(serializers.ModelSerializer):
@@ -32,10 +32,10 @@ class ClienteSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate_cnpj(self, value):
-        cnpj_tratado = re.sub(r'/D', '', value)
+        cnpj_tratado = re.sub(r'\D', '', value)
         tamanho_cnpj_tratado = len(cnpj_tratado)
-        if tamanho_cnpj_tratado != 14:
-            raise serializers.ValidationError(f'O CNPJ deve conter 14 digitos, não {tamanho_cnpj_tratado}.')
+        if tamanho_cnpj_tratado not in [11, 14]:
+            raise serializers.ValidationError(f'O Documento deve conter 14 ou 11 digitos, não {tamanho_cnpj_tratado}.')
         return cnpj_tratado
 
     def validate_nome(self, value):

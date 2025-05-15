@@ -1,2 +1,5 @@
 .venv
 .env
+
+api/__pycache__/
+gerenciador_relatorios/__pycache__/
